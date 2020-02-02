@@ -5,22 +5,41 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
-public class VideoProgressBar : MonoBehaviour
+public class VideoProgressBar : MonoBehaviour, IDragHandler, IPointerDownHandler
 {
+    [SerializeField]
     private VideoPlayer videoPlayer;
-    private Slider slider;
+    private Image progress;
 
-    void Awake()
-    {
-        videoPlayer = GameObject.Find("360 Video Player").GetComponent<VideoPlayer>();
-        slider = GetComponent<Slider>();   
+    void Awake() {
+        progress = GetComponent<Image>();   
     }
 
-    void Update()
-    {
+    void Update() { 
         if (videoPlayer.frameCount > 0) {
-            slider.value = (float)videoPlayer.frame / (float)videoPlayer.frameCount;
+            progress.fillAmount = (float)videoPlayer.frame / (float)videoPlayer.frameCount;
         }
+    }
+
+    public void OnDrag(PointerEventData eventData) {
+        TrySkip(eventData);
+    }
+
+    public void OnPointerDown(PointerEventData eventData) {
+        TrySkip(eventData);
+    }
+
+    private void TrySkip(PointerEventData eventData) {
+        Vector2 localPoint;
+        if(RectTransformUtility.ScreenPointToLocalPointInRectangle(progress.rectTransform, eventData.position, null, out localPoint)) { // change null to the camera used if you are using a world position
+            float percent = Mathf.InverseLerp(progress.rectTransform.rect.xMin, progress.rectTransform.rect.xMax, localPoint.x);
+            SkipToPercent(percent);
+        }
+    }
+
+    private void SkipToPercent(float percent) {
+        var frame = videoPlayer.frameCount * percent;
+        videoPlayer.frame = (long)frame;
     }
 
 }

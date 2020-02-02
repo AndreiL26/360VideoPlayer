@@ -6,6 +6,10 @@ public class VideoController : MonoBehaviour
 {
     public VideoPlayer videoPlayer;
     public Slider slider;
+    public Text currentMinutes;
+    public Text currentSeconds;
+    public Text totalMinutes;
+    public Text totalSeconds;
 
     // video player properties
     private bool hasFinished;
@@ -83,45 +87,100 @@ public class VideoController : MonoBehaviour
         Debug.Log("Video Player started");
     }
 
+    
     private void Update() {
+        if(videoPlayer.isPlaying) {
+            SetCurrentTimeUI();
+        }
+        /*
         if (IsPrepared) {
             slider.value = (float)NTime;
         }
+        */
+    }
+
+    private void Awake() {
+        videoPlayer.EnableAudioTrack(0, false);
+        videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, "MyVideo.mp4");
+        videoPlayer.Prepare();
+    }
+
+    private void SetCurrentTimeUI() {
+        string minutes = Mathf.Floor((int)videoPlayer.time / 60).ToString("00");
+        string seconds = ((int)videoPlayer.time % 60).ToString("00");
+
+        currentMinutes.text = minutes;
+        currentSeconds.text = seconds;
+    }
+
+    private void SetTotalTimeUI() {
+        videoPlayer.Prepare();
+        string minutes = Mathf.Floor((float)videoPlayer.length / 60).ToString("00");
+        string seconds = (videoPlayer.length % 60).ToString("00");
+        Debug.Log(minutes);
+        Debug.Log(seconds);
+        totalMinutes.text = minutes;
+        totalSeconds.text = seconds;
     }
 
     public void LoadVideo(string name) {
         string temp = Application.dataPath + "/StreamingAssets/" + name; /*.mp4,.avi,.mov*/
+        if (videoPlayer.url == temp) return;
 
+        videoPlayer.url = temp;
+        videoPlayer.Prepare();
+
+        Debug.Log("Can set direct audio volume: " + videoPlayer.canSetDirectAudioVolume);
+        Debug.Log("Can set playback speed: " + videoPlayer.canSetPlaybackSpeed);
+        Debug.Log("Can skip on drop: " + videoPlayer.canSetSkipOnDrop);
+        Debug.Log("Can set time: " + videoPlayer.canSetTime);
+        Debug.Log("Can step: " + videoPlayer.canStep);
     }
 
     public void PlayVideo() {
-
+        if(IsPrepared) {
+            videoPlayer.Play();
+            SetTotalTimeUI();
+        }
     }
 
     public void PauseVideo() {
-
+        if(IsPlaying) {
+            videoPlayer.Pause();
+        }
     }
 
-    public void RestardVideo() {
-
+    public void RestartVideo() {
+        if(IsPrepared) {
+            PauseVideo();
+            Seek(0);
+        }
     }
 
     public void LoopVideo(bool toggle) {
-
+        if(IsPrepared) {
+            videoPlayer.isLooping = toggle;
+        }
     }
 
     public void Seek(float nTime) {
-
+        if(videoPlayer.canSetTime && IsPrepared) {
+            nTime = Mathf.Clamp(nTime, 0, 1);
+            videoPlayer.time = nTime * Duration;
+        }
     }
 
     public void IncremenetPlaybackSpeed() {
-
+        if (videoPlayer.canSetPlaybackSpeed) {
+            videoPlayer.playbackSpeed += 1;
+            videoPlayer.playbackSpeed = Mathf.Clamp(videoPlayer.playbackSpeed, 0, 10);
+        }
     }
 
     public void DecrementPlaybackSpeed() {
-
+        if (videoPlayer.canSetPlaybackSpeed) {
+            videoPlayer.playbackSpeed -= 1;
+            videoPlayer.playbackSpeed = Mathf.Clamp(videoPlayer.playbackSpeed, 0, 10);
+        }
     }
-
-
- 
 }
