@@ -5,11 +5,12 @@ using UnityEngine.UI;
 public class VideoController : MonoBehaviour
 {
     public VideoPlayer videoPlayer;
-    public Slider slider;
+    public Slider volumeSlider;
     public Text currentMinutes;
     public Text currentSeconds;
     public Text totalMinutes;
     public Text totalSeconds;
+    public float currentVolume = 1f;
 
     // video player properties
     private bool hasFinished;
@@ -91,6 +92,7 @@ public class VideoController : MonoBehaviour
     private void Update() {
         if(videoPlayer.isPlaying) {
             SetCurrentTimeUI();
+            UpdateVolume();
         }
         /*
         if (IsPrepared) {
@@ -100,7 +102,7 @@ public class VideoController : MonoBehaviour
     }
 
     private void Awake() {
-        videoPlayer.EnableAudioTrack(0, false);
+        //videoPlayer.EnableAudioTrack(0, false);
         videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, "MyVideo.mp4");
         videoPlayer.Prepare();
     }
@@ -182,5 +184,10 @@ public class VideoController : MonoBehaviour
             videoPlayer.playbackSpeed -= 1;
             videoPlayer.playbackSpeed = Mathf.Clamp(videoPlayer.playbackSpeed, 0, 10);
         }
+    }
+
+    public void UpdateVolume() {
+        currentVolume = volumeSlider.value;
+        videoPlayer.SetDirectAudioVolume(0, currentVolume);
     }
 }
