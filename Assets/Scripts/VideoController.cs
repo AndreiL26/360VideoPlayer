@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Video;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class VideoController : MonoBehaviour
 {
@@ -11,6 +12,17 @@ public class VideoController : MonoBehaviour
     public Text totalMinutes;
     public Text totalSeconds;
     public float currentVolume = 1f;
+
+
+    public Image playButtonImage;
+    public Sprite playButtonSprite;
+    public Sprite pauseButtonSprite;
+    private bool isPlayingVideo;
+
+    bool hasVolume;
+    public Image sounndButtonImage;
+    public Sprite soundOnButtonSprite;
+    public Sprite soundOffButtonSprite;
 
     // video player properties
     private bool hasFinished;
@@ -50,6 +62,9 @@ public class VideoController : MonoBehaviour
         videoPlayer.prepareCompleted += prepareCompleted;
         videoPlayer.seekCompleted += seekCompleted;
         videoPlayer.started += started;
+
+        hasVolume = true;
+        currentVolume = 1.0f;
     }
 
     private void OnDisable() {
@@ -93,6 +108,23 @@ public class VideoController : MonoBehaviour
         if(videoPlayer.isPlaying) {
             SetCurrentTimeUI();
             UpdateVolume();
+        }
+
+        if (videoPlayer.isPlaying)
+        {
+            playButtonImage.sprite = pauseButtonSprite;
+        } else
+        {
+            playButtonImage.sprite = playButtonSprite;
+        }
+
+        if (volumeSlider.value > 0.0f)
+        {
+            sounndButtonImage.sprite = soundOnButtonSprite;
+        }
+        else
+        {
+            sounndButtonImage.sprite = soundOffButtonSprite;
         }
         /*
         if (IsPrepared) {
@@ -139,10 +171,27 @@ public class VideoController : MonoBehaviour
         Debug.Log("Can step: " + videoPlayer.canStep);
     }
 
+    public void SetAudio()
+    {
+        if (volumeSlider.value > 0.0f)
+        {
+            volumeSlider.value = 0.0f;
+        } else
+        {
+            volumeSlider.value = 1.0f;
+        }
+    }
+
     public void PlayVideo() {
-        if(IsPrepared) {
-            videoPlayer.Play();
-            SetTotalTimeUI();
+        if(IsPrepared)
+        {
+            if(!IsPlaying)
+            {
+                videoPlayer.Play();
+            } else
+            {
+                videoPlayer.Pause ();
+            }
         }
     }
 
