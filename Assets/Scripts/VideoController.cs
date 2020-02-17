@@ -2,28 +2,27 @@
 using UnityEngine.Video;
 using UnityEngine.UI;
 using DG.Tweening;
+using System.IO;
 
 public class VideoController : MonoBehaviour
 {
     public VideoPlayer videoPlayer;
     public Slider volumeSlider;
-    public Text currentMinutes;
-    public Text currentSeconds;
-    public Text totalMinutes;
-    public Text totalSeconds;
-    public float currentVolume = 1f;
-
-
+    public Slider loopSlider;
+    public Text playbackSpeedText;
+    public Text timeText;
     public Image playButtonImage;
     public Sprite playButtonSprite;
     public Sprite pauseButtonSprite;
-    private bool isPlayingVideo;
-
-    bool hasVolume;
     public Image sounndButtonImage;
     public Sprite soundOnButtonSprite;
     public Sprite soundOffButtonSprite;
 
+    private bool isPlayingVideo;
+    private bool hasVolume;
+    private int currentVideoIndex;
+    private string[] videoPaths;
+    private float currentVolume = 1f;
     // video player properties
     private bool hasFinished;
     
@@ -57,19 +56,16 @@ public class VideoController : MonoBehaviour
 
     private void OnEnable() {
         videoPlayer.errorReceived += errorReceived;
-        videoPlayer.frameReady += frameReady;
         videoPlayer.loopPointReached += loopPointReached;
         videoPlayer.prepareCompleted += prepareCompleted;
         videoPlayer.seekCompleted += seekCompleted;
         videoPlayer.started += started;
-
         hasVolume = true;
         currentVolume = 1.0f;
     }
 
     private void OnDisable() {
         videoPlayer.errorReceived -= errorReceived;
-        videoPlayer.frameReady -= frameReady;
         videoPlayer.loopPointReached -= loopPointReached;
         videoPlayer.prepareCompleted -= prepareCompleted;
         videoPlayer.seekCompleted -= seekCompleted;
@@ -78,10 +74,6 @@ public class VideoController : MonoBehaviour
 
     private void errorReceived(VideoPlayer videoPlayer, string message) {
         Debug.Log("Video Player error: " + message);
-    }
-
-    private void frameReady(VideoPlayer videoPlayer, long frame) {
-        // Invoked every time a frame is ready -> CPU Costly
     }
 
     private void loopPointReached(VideoPlayer videoPlayer) {
@@ -103,65 +95,49 @@ public class VideoController : MonoBehaviour
         Debug.Log("Video Player started");
     }
 
-    
     private void Update() {
         if(videoPlayer.isPlaying) {
-            SetCurrentTimeUI();
             UpdateVolume();
         }
 
-        if (videoPlayer.isPlaying)
-        {
+        if (videoPlayer.isPlaying) {
             playButtonImage.sprite = pauseButtonSprite;
-        } else
-        {
+        } else {
             playButtonImage.sprite = playButtonSprite;
         }
 
-        if (volumeSlider.value > 0.0f)
-        {
+        if (volumeSlider.value > 0.0f) {
             sounndButtonImage.sprite = soundOnButtonSprite;
         }
-        else
-        {
+        else {
             sounndButtonImage.sprite = soundOffButtonSprite;
         }
-        /*
-        if (IsPrepared) {
-            slider.value = (float)NTime;
-        }
-        */
+
+        playbackSpeedText.text = videoPlayer.playbackSpeed.ToString("f2");
+
+
+        string totalMinutes = Mathf.Floor ((float)videoPlayer.length / 60).ToString ("00");
+        string totalSeconds = (videoPlayer.length % 60).ToString ("00");
+
+        string currMinutes = Mathf.Floor ((int)videoPlayer.time / 60).ToString ("00");
+        string currSeconds = ((int)videoPlayer.time % 60).ToString ("00");
+
+        timeText.text = currMinutes + ":" + currSeconds +"/" + totalMinutes + ":" + totalSeconds;
     }
 
     private void Awake() {
-        //videoPlayer.EnableAudioTrack(0, false);
-        videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, "MyVideo.mp4");
-        videoPlayer.Prepare();
+        videoPaths = Directory.GetFiles(Application.streamingAssetsPath, "*.mp4");
     }
 
-    private void SetCurrentTimeUI() {
-        string minutes = Mathf.Floor((int)videoPlayer.time / 60).ToString("00");
-        string seconds = ((int)videoPlayer.time % 60).ToString("00");
-
-        currentMinutes.text = minutes;
-        currentSeconds.text = seconds;
+    private void Start() {
+        LoadVideo(videoPaths[0]);
     }
 
-    private void SetTotalTimeUI() {
-        videoPlayer.Prepare();
-        string minutes = Mathf.Floor((float)videoPlayer.length / 60).ToString("00");
-        string seconds = (videoPlayer.length % 60).ToString("00");
-        Debug.Log(minutes);
-        Debug.Log(seconds);
-        totalMinutes.text = minutes;
-        totalSeconds.text = seconds;
-    }
+    public void LoadVideo(string videoPath) {
+        //string temp = Application.dataPath + "/StreamingAssets/" + name; /*.mp4,.avi,.mov*/
+        if (videoPlayer.url == videoPath) return;
 
-    public void LoadVideo(string name) {
-        string temp = Application.dataPath + "/StreamingAssets/" + name; /*.mp4,.avi,.mov*/
-        if (videoPlayer.url == temp) return;
-
-        videoPlayer.url = temp;
+        videoPlayer.url = videoPath;
         videoPlayer.Prepare();
 
         Debug.Log("Can set direct audio volume: " + videoPlayer.canSetDirectAudioVolume);
@@ -173,23 +149,18 @@ public class VideoController : MonoBehaviour
 
     public void SetAudio()
     {
-        if (volumeSlider.value > 0.0f)
-        {
+        if (volumeSlider.value > 0.0f) {
             volumeSlider.value = 0.0f;
-        } else
-        {
+        } else {
             volumeSlider.value = 1.0f;
         }
     }
 
     public void PlayVideo() {
-        if(IsPrepared)
-        {
-            if(!IsPlaying)
-            {
+        if(IsPrepared) {
+            if(!IsPlaying) {
                 videoPlayer.Play();
-            } else
-            {
+            } else {
                 videoPlayer.Pause ();
             }
         }
@@ -208,9 +179,12 @@ public class VideoController : MonoBehaviour
         }
     }
 
-    public void LoopVideo(bool toggle) {
-        if(IsPrepared) {
-            videoPlayer.isLooping = toggle;
+    public void LoopVideo() {
+        if (loopSlider.value == 0) {
+            videoPlayer.isLooping = false;
+        }
+        else {
+            videoPlayer.isLooping = true;
         }
     }
 
@@ -223,14 +197,14 @@ public class VideoController : MonoBehaviour
 
     public void IncremenetPlaybackSpeed() {
         if (videoPlayer.canSetPlaybackSpeed) {
-            videoPlayer.playbackSpeed += 1;
+            videoPlayer.playbackSpeed += 0.25f;
             videoPlayer.playbackSpeed = Mathf.Clamp(videoPlayer.playbackSpeed, 0, 10);
         }
     }
 
     public void DecrementPlaybackSpeed() {
         if (videoPlayer.canSetPlaybackSpeed) {
-            videoPlayer.playbackSpeed -= 1;
+            videoPlayer.playbackSpeed -= 0.25f;
             videoPlayer.playbackSpeed = Mathf.Clamp(videoPlayer.playbackSpeed, 0, 10);
         }
     }
@@ -238,5 +212,21 @@ public class VideoController : MonoBehaviour
     public void UpdateVolume() {
         currentVolume = volumeSlider.value;
         videoPlayer.SetDirectAudioVolume(0, currentVolume);
+    }
+
+    public void LoadNextVideo() {
+        if(currentVideoIndex < videoPaths.Length - 1) {
+            currentVideoIndex++;
+            LoadVideo(videoPaths[currentVideoIndex]);
+            videoPlayer.Play();
+        }
+    }
+
+    public void LoadPreviousVideo() {
+        if(currentVideoIndex > 0) {
+            currentVideoIndex--;
+            LoadVideo(videoPaths[currentVideoIndex]);
+            videoPlayer.Play();
+        }
     }
 }

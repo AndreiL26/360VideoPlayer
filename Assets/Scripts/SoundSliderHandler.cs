@@ -9,22 +9,22 @@ public class SoundSliderHandler : MonoBehaviour, IPointerEnterHandler, IPointerE
 {
     public Transform volumeSlider;
     SliderBehaviour sb;
+    public RectTransform timeTextRT;
+
+    private Vector2 initialAnchorsMin;
+    private Vector2 initialAnchorsMax;
 
     private void Start ()
     {
         sb = volumeSlider.GetComponent<SliderBehaviour> ();
+        initialAnchorsMax = timeTextRT.anchorMax;
+        initialAnchorsMin = timeTextRT.anchorMin;
         volumeSlider.localScale = new Vector3 (0.0f, 1.0f, 1.0f);
     }
 
     public void OnPointerExit (PointerEventData eventData)
     {
         sb.pointerOnButton = false;
-        //if (sb.hasPointer == false)
-        //{
-        //    sb.CanExit = true;
-        //    volumeSlider.DOKill ();
-        //    volumeSlider.DOScaleX (0.0f, 0.1f);
-        //}
     }
 
     public void OnPointerEnter (PointerEventData eventData)
@@ -34,7 +34,10 @@ public class SoundSliderHandler : MonoBehaviour, IPointerEnterHandler, IPointerE
         {
             sb.enabled = true;
             volumeSlider.DOKill ();
+            timeTextRT.DOKill ();
             volumeSlider.DOScaleX (1.0f, 0.1f);
+            timeTextRT.DOAnchorMax (initialAnchorsMax + new Vector2 (0.07f, 0.0f), 0.2f);
+            timeTextRT.DOAnchorMin (initialAnchorsMin + new Vector2 (0.07f, 0.0f), 0.2f);
         }
     }
 }

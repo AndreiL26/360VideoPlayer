@@ -21,20 +21,15 @@ public class ShowBar : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            Debug.Log ("Pressed A");
             if (!isUp)
             {
-                Debug.Log ("I should go up");
                 cvsGr.DOFade (1.0f, 0.25f).SetEase (Ease.InSine).OnComplete(()=> { cvsGr.interactable = true; });
-                
-                //bar.DOAnchorMax(new Vector2 (1.0f, 0.1f), 0.1f).SetEase (Ease.InSine);
+             
             } else
             {
-                Debug.Log ("I should go down");
                 cvsGr.DOFade (0.0f, 0.25f).SetEase (Ease.OutSine).OnComplete (() => { cvsGr.interactable = false; });
-                //bar.DOAnchorMax (new Vector2(1.0f, 0.0f), 0.1f).SetEase (Ease.OutSine);
             }
 
             isUp = !isUp;
