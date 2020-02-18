@@ -1,13 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD
-<<<<<<< HEAD:Assets/Textures/gradient_bar.jpg.meta
-guid: 531c6893b71de5b48bffde16dc5e3610
-=======
-guid: 641192675b3483d42b506c2715625d1a
->>>>>>> 8ae74ef7fe0beeb388d0f221f32571162021d395:Assets/Textures/Fast_Forward_Button.png.meta
-=======
-guid: 531c6893b71de5b48bffde16dc5e3610
->>>>>>> 8ae74ef7fe0beeb388d0f221f32571162021d395
+guid: b707f0a186dd9bc48bbbdbe86fcd4ead
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -40,7 +32,7 @@ TextureImporter:
   textureSettings:
     serializedVersion: 2
     filterMode: -1
-    aniso: 1
+    aniso: -1
     mipBias: -100
     wrapU: 1
     wrapV: 1

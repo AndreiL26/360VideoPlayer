@@ -23,15 +23,13 @@ public class ShowBar : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (!isUp)
-            {
-                cvsGr.DOFade (1.0f, 0.25f).SetEase (Ease.InSine).OnComplete(()=> { cvsGr.interactable = true; });
-             
-            } else
-            {
-                cvsGr.DOFade (0.0f, 0.25f).SetEase (Ease.OutSine).OnComplete (() => { cvsGr.interactable = false; });
-            }
+            if (!isUp) {
+                cvsGr.DOFade(1.0f, 0.25f).SetEase(Ease.InSine).OnComplete(() => { cvsGr.interactable = true; });
 
+            }
+            else {
+                cvsGr.DOFade(0.0f, 0.25f).SetEase(Ease.OutSine).OnComplete(() => { cvsGr.interactable = false; });
+            }
             isUp = !isUp;
         }
     }

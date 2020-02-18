@@ -1,5 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
+<<<<<<< HEAD:Assets/Demigiant/DOTween/Modules/DOTweenModulePhysics.cs.meta
 guid: dae9aa560b4242648a3affa2bfabc365
+=======
+guid: b766d08851589514b97afb23c6f30a70
+>>>>>>> 8ae74ef7fe0beeb388d0f221f32571162021d395:Assets/Demigiant/DOTween/Modules/DOTweenModuleAudio.cs.meta
+=======
+guid: dae9aa560b4242648a3affa2bfabc365
+>>>>>>> 8ae74ef7fe0beeb388d0f221f32571162021d395
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

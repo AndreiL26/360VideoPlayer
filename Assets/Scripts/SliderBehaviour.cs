@@ -15,24 +15,21 @@ public class SliderBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     private Vector2 initialAnchorsMin;
     private Vector2 initialAnchorsMax;
-    
-    private void Start ()
-    {
+
+    private void Start() {
         hasPointer = false;
         initialAnchorsMax = timeTextRT.anchorMax;
         initialAnchorsMin = timeTextRT.anchorMin;
     }
-
-    void Update ()
-    {
-        if (enabled && !hasPointer && !pointerOnButton)
-        {
+    void Update () {
+        if (enabled && !hasPointer && !pointerOnButton) {
             enabled = false;
             this.DOKill ();
             timeTextRT.DOKill ();
             this.transform.DOScaleX (0.0f, 0.1f);
             timeTextRT.DOAnchorMax (initialAnchorsMax, 0.2f);
             timeTextRT.DOAnchorMin (initialAnchorsMin, 0.2f);
+            this.transform.DOScaleX (0.0f, 0.1f);
         }
     }
 
@@ -45,5 +42,4 @@ public class SliderBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerExit
     {
         hasPointer = true;
     }
-    
 }

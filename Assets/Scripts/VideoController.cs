@@ -14,6 +14,11 @@ public class VideoController : MonoBehaviour
     public Image playButtonImage;
     public Sprite playButtonSprite;
     public Sprite pauseButtonSprite;
+    public Text currentMinutes;
+    public Text currentSeconds;
+    public Text totalMinutes;
+    public Text totalSeconds;
+
     public Image sounndButtonImage;
     public Sprite soundOnButtonSprite;
     public Sprite soundOffButtonSprite;
@@ -95,6 +100,7 @@ public class VideoController : MonoBehaviour
         Debug.Log("Video Player started");
     }
 
+    
     private void Update() {
         if(videoPlayer.isPlaying) {
             UpdateVolume();
@@ -188,6 +194,7 @@ public class VideoController : MonoBehaviour
         }
     }
 
+
     public void Seek(float nTime) {
         if(videoPlayer.canSetTime && IsPrepared) {
             nTime = Mathf.Clamp(nTime, 0, 1);
@@ -227,6 +234,9 @@ public class VideoController : MonoBehaviour
             currentVideoIndex--;
             LoadVideo(videoPaths[currentVideoIndex]);
             videoPlayer.Play();
+        }
+            videoPlayer.playbackSpeed -= 1;
+            videoPlayer.playbackSpeed = Mathf.Clamp(videoPlayer.playbackSpeed, 0, 10);
         }
     }
 }

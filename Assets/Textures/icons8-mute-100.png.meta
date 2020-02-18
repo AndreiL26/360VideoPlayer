@@ -1,5 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
+<<<<<<< HEAD:Assets/Textures/icons8-mute-100.png.meta
 guid: 324e8d37f14a2b544b2a4a7e4719f4c5
+=======
+guid: dfd18a48fe183a746975e5c63113f483
+>>>>>>> 8ae74ef7fe0beeb388d0f221f32571162021d395:Assets/Textures/Decrement_Speed_Button.png.meta
+=======
+guid: 324e8d37f14a2b544b2a4a7e4719f4c5
+>>>>>>> 8ae74ef7fe0beeb388d0f221f32571162021d395
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
