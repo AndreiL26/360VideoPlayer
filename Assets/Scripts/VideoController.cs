@@ -237,6 +237,5 @@ public class VideoController : MonoBehaviour
         }
             videoPlayer.playbackSpeed -= 1;
             videoPlayer.playbackSpeed = Mathf.Clamp(videoPlayer.playbackSpeed, 0, 10);
-        }
     }
 }
