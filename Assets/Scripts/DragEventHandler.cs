@@ -1,17 +1,42 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 using UnityEngine.EventSystems;
 
-public class DragEventHandler : MonoBehaviour, IDragHandler, IEndDragHandler {
+public class DragEventHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler {
 
     public float speed = 3.5f;
     public Camera mainCamera;
+    [SerializeField]
+    private RectTransform bar;
+    [SerializeField]
+    private CanvasGroup canvasGroup;
     private float X;
     private float Y;
     private bool rotate;
-           
-   
+
+
+    void Start() {
+        canvasGroup.interactable = false;
+        canvasGroup.alpha = 0;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData) {
+        canvasGroup.DOFade(0.0f, 0.25f).SetEase(Ease.OutSine).OnComplete(() => { canvasGroup.interactable = false; });
+    }
+
+    public void OnPointerExit(PointerEventData eventData) {
+        canvasGroup.DOFade(1.0f, 0.25f).SetEase(Ease.InSine).OnComplete(() => { canvasGroup.interactable = true; });
+
+    }
+
+    private IEnumerator WaitBeforeHidingUIBar() {
+        //Leads to Buggy Behaviour idk why, must look into it!
+        yield return new WaitForSeconds(1);
+    }
+
+
     public void OnDrag(PointerEventData eventData) {
         rotate = true;
     }
@@ -30,5 +55,6 @@ public class DragEventHandler : MonoBehaviour, IDragHandler, IEndDragHandler {
             Y = mainCamera.transform.rotation.eulerAngles.y;
             mainCamera.transform.rotation = Quaternion.Euler(X, Y, 0);
         }
+        
     }
 }

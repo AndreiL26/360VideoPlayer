@@ -3,6 +3,7 @@ using UnityEngine.Video;
 using UnityEngine.UI;
 using DG.Tweening;
 using System.IO;
+using System.Collections.Generic;
 
 public class VideoController : MonoBehaviour
 {
@@ -26,7 +27,7 @@ public class VideoController : MonoBehaviour
     private bool isPlayingVideo;
     private bool hasVolume;
     private int currentVideoIndex;
-    private string[] videoPaths;
+    private List<string> videoPaths = new List<string>();
     private float currentVolume = 1f;
     // video player properties
     private bool hasFinished;
@@ -132,7 +133,9 @@ public class VideoController : MonoBehaviour
     }
 
     private void Awake() {
-        videoPaths = Directory.GetFiles(Application.streamingAssetsPath, "*.mp4");
+        //Super Hard Coded just to show functionality
+        videoPaths.Add(Path.Combine(Application.streamingAssetsPath, "MyVideo.mp4"));
+        videoPaths.Add(Path.Combine(Application.streamingAssetsPath, "ThirdVideo.mp4"));
     }
 
     private void Start() {
@@ -222,7 +225,7 @@ public class VideoController : MonoBehaviour
     }
 
     public void LoadNextVideo() {
-        if(currentVideoIndex < videoPaths.Length - 1) {
+        if(currentVideoIndex < videoPaths.Count - 1) {
             currentVideoIndex++;
             LoadVideo(videoPaths[currentVideoIndex]);
             videoPlayer.Play();
@@ -235,7 +238,5 @@ public class VideoController : MonoBehaviour
             LoadVideo(videoPaths[currentVideoIndex]);
             videoPlayer.Play();
         }
-            videoPlayer.playbackSpeed -= 1;
-            videoPlayer.playbackSpeed = Mathf.Clamp(videoPlayer.playbackSpeed, 0, 10);
     }
 }
