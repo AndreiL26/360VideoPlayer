@@ -5,7 +5,7 @@ public class SettingsPopUpMgr : MonoBehaviour
 {
     public CanvasGroup settingsPanel;
     public Transform img;
-    bool isUp = false;
+    private bool isUp = false;
 
     void Start() {
         settingsPanel.interactable = false;

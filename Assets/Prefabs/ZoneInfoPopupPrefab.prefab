@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8853862957186863800}
   - component: {fileID: 1273153698434092550}
   - component: {fileID: 1194612394926441500}
+  - component: {fileID: -6710556461698678908}
   m_Layer: 5
   m_Name: ZoneInfoPopupPrefab
   m_TagString: Untagged
@@ -99,6 +100,19 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &-6710556461698678908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 213130859304127612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e80b466fc74f83e4aad73b595c3fe674, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  zonePopUp: {fileID: 3835829823415042659}
 --- !u!1 &3835829822485097921
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,7 +230,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3835829823315430163}
   m_HandleRect: {fileID: 3835829823315430162}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 0.000018310548
   m_Size: 0.6666667
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -385,6 +399,7 @@ GameObject:
   - component: {fileID: 3835829823415042657}
   - component: {fileID: 3835829823415042656}
   - component: {fileID: 3835829823415042659}
+  - component: {fileID: 2207267239633492426}
   m_Layer: 0
   m_Name: ZoneInfo
   m_TagString: Untagged
@@ -493,6 +508,27 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!223 &2207267239633492426
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3835829823415042662}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 0
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
 --- !u!1 &3835829823513072655
 GameObject:
   m_ObjectHideFlags: 0
@@ -686,7 +722,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 99.99999}
+  m_AnchoredPosition: {x: 0, y: 99.99752}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &3835829823982608384
@@ -807,8 +843,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_MethodName: HidePopUp
+      - m_Target: {fileID: -6710556461698678908}
+        m_MethodName: DisablePopUp
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
