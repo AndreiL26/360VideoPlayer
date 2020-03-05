@@ -10,17 +10,16 @@ public class HighlightMgr : MonoBehaviour
     [SerializeField] private Material highlightMaterial;
     [SerializeField] private CanvasGroup popUpCanvasGroup;
     [SerializeField] private Text popUpText;
-    [SerializeField] private Text zoneCenterXText;
-    [SerializeField] private Text zoneCenterYText;
-
-    [Range(0.0f, 1.0f)] public float zoneCenterX = 0.25f;
-    [Range(0.0f, 1.0f)] public float zoneCenterY = 0.5f;
+    [SerializeField] private GameObject regionPopUpInfoCanvasPrefab;
     private float[] highlightedRegionsData = new float[80];
+    private float[] previewRegionData = new float [4];
     private List<RegionData> regionsData = new List<RegionData>();
     private int existingZones = 0;
 
-    private class RegionData
-    {
+    bool previewRegionEnabled = false;
+
+    private class RegionData {
+        public RegionData(){}
         public RegionData(float centerX, float centerY, float sizeX, float sizeY, string text) {
             this.center.x = centerX;
             this.center.y = centerY;
@@ -31,19 +30,14 @@ public class HighlightMgr : MonoBehaviour
         public Vector2 center;
         public Vector2 size;
         public string text;
-        //float minTime;
-        //float maxTime;
     }
-    public struct PolarAngles
-    {
-        public PolarAngles(float x, float y)
-        {
+    public struct PolarAngles {
+        public PolarAngles(float x, float y) {
             this.azimuth = x;
             this.zenith = y;        
         }
 
-        public PolarAngles(Vector2 pt)
-        {
+        public PolarAngles(Vector2 pt) {
             azimuth = pt.x;
             zenith = pt.y;
         }
@@ -53,12 +47,8 @@ public class HighlightMgr : MonoBehaviour
     }
 
     private void Awake() {
-       // regionsData.Add(new RegionData(zoneCenterX, zoneCenterY, 0.1f, 0.05f, "Hello, I am Zone Number 1!"));
-        regionsData.Add(new RegionData(zoneCenterX + 0.5f, zoneCenterY, 0.1f, 0.05f, "Hello, I am Zone Number 2!"));
         highlightMaterial.SetFloatArray("_RegionsData", highlightedRegionsData);
         highlightMaterial.SetInt("_RegionsSize", 0);
-
-        HidePopUp();
     }
     
     private void AddRegionData(float centerX, float centerY, float sizeX, float sizeY, string text) {
@@ -67,11 +57,39 @@ public class HighlightMgr : MonoBehaviour
         AddRegionToShader(newRegion);
     }
 
-    public void AddRegionDataFromButton() {
-        float zoneX = float.Parse(zoneCenterXText.text);
-        float zoneY = float.Parse(zoneCenterYText.text);
-       
-        AddRegionData(zoneX, zoneY, 0.1f, 0.05f, "HELLO I AM ADDED ZONE HAHAA");
+    public void ModifyPreviewValues(float centerX, float centerY, float sizeX, float sizeY) {
+        previewRegionData[0] = centerX;
+        previewRegionData[1] = centerY;
+        previewRegionData[2] = sizeX;
+        previewRegionData[3] = sizeY;
+    }
+
+    public Vector4 SetupPreviewRegion() {
+        Vector4 ret = new Vector4();
+        previewRegionEnabled = true;
+        rayDir = Camera.main.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0.0f)).direction;
+        PolarAngles clickPosition = ToRadialCoords(rayDir);
+        previewRegionData[0] = clickPosition.azimuth;
+        previewRegionData[1] = clickPosition.zenith;
+        previewRegionData[2] = 0.05f;
+        previewRegionData[3] = 0.05f;
+        ret.x = clickPosition.azimuth;
+        ret.y = clickPosition.zenith;
+        ret.z = 0.05f;
+        ret.w = 0.05f;
+
+        return ret;
+    }
+
+    public void StopPreviewRegion() {
+        previewRegionEnabled = false;
+    }
+
+    public void AddPreviewRegionsToRegionsData() {
+        RegionData regionData = new RegionData();
+        regionData.center = new Vector2(previewRegionData[0],previewRegionData[1]);
+        regionData.size = new Vector2(previewRegionData[2],previewRegionData[3]);
+        regionsData.Add(regionData);
     }
     
     private void AddRegionToShader(RegionData regionData) {
@@ -81,45 +99,31 @@ public class HighlightMgr : MonoBehaviour
         highlightedRegionsData[existingZones * 4 + 3] = (regionData.size.y);
         existingZones = existingZones + 1;
         highlightMaterial.SetInt("_RegionsSize", existingZones);
-
     }
 
-
-    public void ShowPopUp() {
-        popUpCanvasGroup.alpha = 1;
-        popUpCanvasGroup.interactable = true;
-    }
-
-    public void HidePopUp() {
-        popUpCanvasGroup.interactable = false;
-        popUpCanvasGroup.alpha = 0;
-    }
-
-   
-    private void Update()
-    {
+    private void Update() {
         if(!mainCam)
             return;
 
-        //for all curr regions 
-        //create regions data
-        highlightMaterial.SetFloatArray("_RegionsData", highlightedRegionsData);
+        if(!previewRegionEnabled)
+        {
+            highlightMaterial.SetFloatArray("_RegionsData", highlightedRegionsData);
 
-        if (Input.GetMouseButtonDown(0)) {
-            rayDir = Camera.main.ScreenPointToRay(Input.mousePosition).direction;
+            if (Input.GetMouseButtonDown(0)) {
+                rayDir = Camera.main.ScreenPointToRay(Input.mousePosition).direction;
 
-            PolarAngles clickPosition = ToRadialCoords(rayDir);
-            RegionData hitRegion = CheckRegionHit(clickPosition);
-            if (hitRegion != null) {
-               AddRegionToShader(hitRegion);
-                if(popUpCanvasGroup.alpha == 0) {
-                    ShowPopUp();
+                PolarAngles clickPosition = ToRadialCoords(rayDir);
+                RegionData hitRegion = CheckRegionHit(clickPosition);
+                if (hitRegion != null) {
+                    AddRegionToShader(hitRegion);
+                    Quaternion rot = Quaternion.LookRotation(rayDir, Vector3.up);
+                    GameObject regionPopUpInfo = Instantiate(regionPopUpInfoCanvasPrefab, rayDir * 5.0f, rot);
+                    popUpText.text = hitRegion.text;
                 }
-                popUpText.text = hitRegion.text;
             }
-            //GetSelectedRegions(polarAng)
-            //for each region check if polarang is in region
-            //if region found then add to list
+        } else  {
+            highlightMaterial.SetFloatArray("_RegionsData", previewRegionData);
+            highlightMaterial.SetInt("_RegionsSize", 1);
         }
     }
 
@@ -133,7 +137,6 @@ public class HighlightMgr : MonoBehaviour
         }
         return null;
     }
-
 
     public PolarAngles ToRadialCoords(Vector3 coords) {
         float pi = 3.14159265359f;
