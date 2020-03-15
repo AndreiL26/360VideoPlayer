@@ -12,6 +12,7 @@ public class HighlightMgr : MonoBehaviour
     [SerializeField] private GameObject regionPopUpInfoCanvasPrefab;
     private float[] shaderRegionsData = new float[80];
     private float[] previewRegionData = new float [4];
+    private string regionDescription;
     private List<RegionData> regionsData = new List<RegionData>();
     private int existingZones = 0;
 
@@ -38,12 +39,12 @@ public class HighlightMgr : MonoBehaviour
         public GameObject regionPopUp;
         public float lastTimeClicked;
     }
+
     public struct PolarAngles {
         public PolarAngles(float x, float y) {
             this.azimuth = x;
             this.zenith = y;        
         }
-
         public PolarAngles(Vector2 pt) {
             azimuth = pt.x;
             zenith = pt.y;
@@ -58,11 +59,12 @@ public class HighlightMgr : MonoBehaviour
         highlightMaterial.SetInt("_RegionsSize", 0);
     }
 
-    public void ModifyPreviewValues(float centerX, float centerY, float sizeX, float sizeY) {
+    public void ModifyPreviewValues(float centerX, float centerY, float sizeX, float sizeY, string description) {
         previewRegionData[0] = centerX;
         previewRegionData[1] = centerY;
         previewRegionData[2] = sizeX;
         previewRegionData[3] = sizeY;
+        regionDescription = description;
     }
 
     public Vector4 SetupPreviewRegion() {
@@ -78,6 +80,7 @@ public class HighlightMgr : MonoBehaviour
         ret.y = clickPosition.zenith;
         ret.z = 0.05f;
         ret.w = 0.05f;
+        regionDescription = "Add your zone description here";
 
         return ret;
     }
@@ -90,6 +93,7 @@ public class HighlightMgr : MonoBehaviour
         RegionData regionData = new RegionData();
         regionData.center = new Vector2(previewRegionData[0],previewRegionData[1]);
         regionData.size = new Vector2(previewRegionData[2],previewRegionData[3]);
+        regionData.text = regionDescription;
         regionsData.Add(regionData);
     }
     
@@ -111,13 +115,16 @@ public class HighlightMgr : MonoBehaviour
                     if (GetRegionIndexFromShader(hitRegion) == -1) {
                         AddRegionToShader(hitRegion);
                     }
+                    Quaternion rot = Quaternion.LookRotation(rayDir, Vector3.up);
                     if (hitRegion.regionPopUp == null) {
-                        Quaternion rot = Quaternion.LookRotation(rayDir, Vector3.up);
                         hitRegion.regionPopUp = Instantiate(regionPopUpInfoCanvasPrefab, rayDir * 5.0f, rot);
+                        hitRegion.regionPopUp.GetComponent<Text>().text = hitRegion.text;
                         hitRegion.regionPopUp.GetComponent<ZonePopUpController>().EnablePopUp();
                     }
                     else {
                         if (hitRegion.regionPopUp.GetComponent<ZonePopUpController>().IsEnabled() == false) {
+                            hitRegion.regionPopUp.transform.position = rayDir * 5.0f;
+                            hitRegion.regionPopUp.transform.rotation = rot;
                             hitRegion.regionPopUp.GetComponent<ZonePopUpController>().EnablePopUp();
                         }
                     }
@@ -142,7 +149,6 @@ public class HighlightMgr : MonoBehaviour
     }
 
     private int GetRegionIndexFromShader(RegionData region) {
-        /// Might want to consider not allowing 'Overlapping regions (i.e. now u can have same center different sizes, what happens then?'
         for(int i = 0; i < existingZones; ++ i) {
             if(shaderRegionsData[i * 4] == region.center.x && shaderRegionsData[i * 4 + 1] == region.center.y && 
                shaderRegionsData[i * 4 + 2] == region.size.x && shaderRegionsData[i * 4 + 3] == region.size.y) {

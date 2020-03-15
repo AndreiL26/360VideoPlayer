@@ -13,6 +13,7 @@ public class AddZoneController : MonoBehaviour
     public Slider centerYSlider;
     public Slider sizeXSlider;
     public Slider sizeYSlider;
+    public InputField descriptionInputField;
 
     bool isUp = false;
 
@@ -39,9 +40,8 @@ public class AddZoneController : MonoBehaviour
         isUp = !isUp;
     }
 
-
     public void ModifiedRegionsValues() {
-        highlightMgr.ModifyPreviewValues(centerXSlider.value, centerYSlider.value, sizeXSlider.value, sizeYSlider.value);
+        highlightMgr.ModifyPreviewValues(centerXSlider.value, centerYSlider.value, sizeXSlider.value, sizeYSlider.value, descriptionInputField.text);
     }
 
     public void AddPreviewRegionToData() {
