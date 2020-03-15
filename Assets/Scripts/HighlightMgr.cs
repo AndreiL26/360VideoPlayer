@@ -118,7 +118,7 @@ public class HighlightMgr : MonoBehaviour
                     Quaternion rot = Quaternion.LookRotation(rayDir, Vector3.up);
                     if (hitRegion.regionPopUp == null) {
                         hitRegion.regionPopUp = Instantiate(regionPopUpInfoCanvasPrefab, rayDir * 5.0f, rot);
-                        hitRegion.regionPopUp.GetComponent<Text>().text = hitRegion.text;
+                        hitRegion.regionPopUp.GetComponentInChildren<Text>().text = hitRegion.text;
                         hitRegion.regionPopUp.GetComponent<ZonePopUpController>().EnablePopUp();
                     }
                     else {
