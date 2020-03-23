@@ -14,6 +14,8 @@ public class AddZoneController : MonoBehaviour
     public Slider sizeXSlider;
     public Slider sizeYSlider;
     public InputField descriptionInputField;
+    public InputField startTimeInputField;
+    public InputField endTimeInputField;
 
     bool isUp = false;
 
@@ -31,6 +33,9 @@ public class AddZoneController : MonoBehaviour
             centerYSlider.value = sliderValues.y;
             sizeXSlider.value = sliderValues.z;
             sizeYSlider.value = sliderValues.w;
+            descriptionInputField.text = " ";
+            startTimeInputField.text = "0";
+            endTimeInputField.text = "0";
         }
         else {
             addZonePanel.DOFade (0.0f, 0.25f).SetEase (Ease.OutSine).OnComplete (() => { addZonePanel.interactable = false; });
@@ -41,7 +46,7 @@ public class AddZoneController : MonoBehaviour
     }
 
     public void ModifiedRegionsValues() {
-        highlightMgr.ModifyPreviewValues(centerXSlider.value, centerYSlider.value, sizeXSlider.value, sizeYSlider.value, descriptionInputField.text);
+        highlightMgr.ModifyPreviewValues(centerXSlider.value, centerYSlider.value, sizeXSlider.value, sizeYSlider.value, descriptionInputField.text, startTimeInputField.text, endTimeInputField.text);
     }
 
     public void AddPreviewRegionToData() {

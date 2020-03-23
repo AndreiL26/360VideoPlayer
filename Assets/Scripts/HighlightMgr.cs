@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,9 +11,12 @@ public class HighlightMgr : MonoBehaviour
     [SerializeField] private Material highlightMaterial;
     [SerializeField] private CanvasGroup popUpCanvasGroup;
     [SerializeField] private GameObject regionPopUpInfoCanvasPrefab;
+    [SerializeField] private VideoController videoController;
     private float[] shaderRegionsData = new float[80];
     private float[] previewRegionData = new float [4];
     private string regionDescription;
+    private float startTime;
+    private float endTime;
     private List<RegionData> regionsData = new List<RegionData>();
     private int existingZones = 0;
 
@@ -23,12 +27,14 @@ public class HighlightMgr : MonoBehaviour
             this.regionPopUp = null;
             this.lastTimeClicked = -1;
         }
-        public RegionData(float centerX, float centerY, float sizeX, float sizeY, string text) {
+        public RegionData(float centerX, float centerY, float sizeX, float sizeY, string text, int startTime, int endTime) {
             this.center.x = centerX;
             this.center.y = centerY;
             this.size.x   = sizeX;
             this.size.y  = sizeY;
             this.text = text;
+            this.startTime = startTime;
+            this.endTime = endTime;
             this.regionPopUp = null;
             this.lastTimeClicked = -1;
         }
@@ -36,6 +42,8 @@ public class HighlightMgr : MonoBehaviour
         public Vector2 center;
         public Vector2 size;
         public string text;
+        public float startTime;
+        public float endTime;
         public GameObject regionPopUp;
         public float lastTimeClicked;
     }
@@ -59,12 +67,24 @@ public class HighlightMgr : MonoBehaviour
         highlightMaterial.SetInt("_RegionsSize", 0);
     }
 
-    public void ModifyPreviewValues(float centerX, float centerY, float sizeX, float sizeY, string description) {
+    public void ModifyPreviewValues(float centerX, float centerY, float sizeX, float sizeY, string regionDescription, string startTime, string endTime) {
         previewRegionData[0] = centerX;
         previewRegionData[1] = centerY;
         previewRegionData[2] = sizeX;
         previewRegionData[3] = sizeY;
-        regionDescription = description;
+        this.regionDescription = regionDescription;
+        if (float.TryParse(startTime, out float startResult)) {
+            this.startTime = startResult;
+        }
+        else {
+            this.startTime = 0;
+        }
+        if (float.TryParse(endTime, out float endResult)) {
+            this.endTime = endResult;
+        }
+        else {
+            this.endTime = 0;
+        }
     }
 
     public Vector4 SetupPreviewRegion() {
@@ -89,11 +109,20 @@ public class HighlightMgr : MonoBehaviour
         previewRegionEnabled = false;
     }
 
+
+    public void RemoveAllRegionsFromShader() {
+        foreach (RegionData region in regionsData) {
+            RemoveRegionFromShader(region);
+        }
+    }
+
     public void AddPreviewRegionsToRegionsData() {
         RegionData regionData = new RegionData();
         regionData.center = new Vector2(previewRegionData[0],previewRegionData[1]);
         regionData.size = new Vector2(previewRegionData[2],previewRegionData[3]);
         regionData.text = regionDescription;
+        regionData.startTime = startTime;
+        regionData.endTime = endTime;
         regionsData.Add(regionData);
     }
     
@@ -111,21 +140,20 @@ public class HighlightMgr : MonoBehaviour
                 PolarAngles clickPosition = ToRadialCoords(rayDir);
                 RegionData hitRegion = CheckRegionHit(clickPosition);
                 if (hitRegion != null) {
-                    hitRegion.lastTimeClicked = Time.time;
-                    if (GetRegionIndexFromShader(hitRegion) == -1) {
-                        AddRegionToShader(hitRegion);
-                    }
-                    Quaternion rot = Quaternion.LookRotation(rayDir, Vector3.up);
-                    if (hitRegion.regionPopUp == null) {
-                        hitRegion.regionPopUp = Instantiate(regionPopUpInfoCanvasPrefab, rayDir * 5.0f, rot);
-                        hitRegion.regionPopUp.GetComponentInChildren<Text>().text = hitRegion.text;
-                        hitRegion.regionPopUp.GetComponent<ZonePopUpController>().EnablePopUp();
-                    }
-                    else {
-                        if (hitRegion.regionPopUp.GetComponent<ZonePopUpController>().IsEnabled() == false) {
-                            hitRegion.regionPopUp.transform.position = rayDir * 5.0f;
-                            hitRegion.regionPopUp.transform.rotation = rot;
+                    if (GetRegionIndexFromShader(hitRegion) != -1) {
+                        //AddRegionToShader(hitRegion);
+                        Quaternion rot = Quaternion.LookRotation(rayDir, Vector3.up);
+                        if (hitRegion.regionPopUp == null) {
+                            hitRegion.regionPopUp = Instantiate(regionPopUpInfoCanvasPrefab, rayDir * 5.0f, rot);
+                            hitRegion.regionPopUp.GetComponentInChildren<Text>().text = hitRegion.text;
                             hitRegion.regionPopUp.GetComponent<ZonePopUpController>().EnablePopUp();
+                        }
+                        else {
+                            if (hitRegion.regionPopUp.GetComponent<ZonePopUpController>().IsEnabled() == false) {
+                                hitRegion.regionPopUp.transform.position = rayDir * 5.0f;
+                                hitRegion.regionPopUp.transform.rotation = rot;
+                                hitRegion.regionPopUp.GetComponent<ZonePopUpController>().EnablePopUp();
+                            }
                         }
                     }
                 }
@@ -135,7 +163,7 @@ public class HighlightMgr : MonoBehaviour
             highlightMaterial.SetInt("_RegionsSize", 1);
         }
 
-        UpdateShaderRegions(Time.time);
+        UpdateShaderRegions();
     }
 
     private RegionData CheckRegionHit(PolarAngles position) {
@@ -158,10 +186,14 @@ public class HighlightMgr : MonoBehaviour
         return -1;
     }
 
-    private void UpdateShaderRegions(float currentTime) {
+
+    private void UpdateShaderRegions() {
         foreach(RegionData region in regionsData) {
-            if(region.lastTimeClicked != -1 && currentTime - region.lastTimeClicked > 10.0f) {
+            if(region.endTime <= videoController.Time) {
                 RemoveRegionFromShader(region);
+            }
+            else if (region.startTime < videoController.Time && GetRegionIndexFromShader(region) == -1) {
+                AddRegionToShader(region);
             }
         }
     }
@@ -190,7 +222,7 @@ public class HighlightMgr : MonoBehaviour
         shaderRegionsData[existingZones * 4 + 1] = (regionData.center.y);
         shaderRegionsData[existingZones * 4 + 2] = (regionData.size.x);
         shaderRegionsData[existingZones * 4 + 3] = (regionData.size.y);
-        existingZones = existingZones + 1;
+        existingZones += 1;
         highlightMaterial.SetInt("_RegionsSize", existingZones);
     }
 

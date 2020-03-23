@@ -15,15 +15,10 @@ public class VideoController : MonoBehaviour
     public Image playButtonImage;
     public Sprite playButtonSprite;
     public Sprite pauseButtonSprite;
-    public Text currentMinutes;
-    public Text currentSeconds;
-    public Text totalMinutes;
-    public Text totalSeconds;
-
     public Image sounndButtonImage;
     public Sprite soundOnButtonSprite;
     public Sprite soundOffButtonSprite;
-
+    [SerializeField] private HighlightMgr highlightMgr;
     private bool isPlayingVideo;
     private bool hasVolume;
     private int currentVideoIndex;
@@ -134,8 +129,11 @@ public class VideoController : MonoBehaviour
 
     private void Awake() {
         //Super Hard Coded just to show functionality
+        //videoPaths.Add("https://team9.blob.core.windows.net/testcontainer/3D_Waterfront.mp4?se=2020-09-09&sp=rwdlac&sv=2018-03-28&ss=b&srt=sco&sig=A2iAIQZWf6xSXXO%2Bxw91D6tTcIPfBfCgOriddgBS6%2BQ%3D");
+
         videoPaths.Add(Path.Combine(Application.streamingAssetsPath, "MyVideo.mp4"));
         videoPaths.Add(Path.Combine(Application.streamingAssetsPath, "ThirdVideo.mp4"));
+
     }
 
     private void Start() {
@@ -225,6 +223,7 @@ public class VideoController : MonoBehaviour
     }
 
     public void LoadNextVideo() {
+        highlightMgr.RemoveAllRegionsFromShader();
         if(currentVideoIndex < videoPaths.Count - 1) {
             currentVideoIndex++;
             LoadVideo(videoPaths[currentVideoIndex]);
@@ -233,6 +232,7 @@ public class VideoController : MonoBehaviour
     }
 
     public void LoadPreviousVideo() {
+        highlightMgr.RemoveAllRegionsFromShader();
         if(currentVideoIndex > 0) {
             currentVideoIndex--;
             LoadVideo(videoPaths[currentVideoIndex]);
