@@ -107,6 +107,7 @@ SubShader {
 
             half4 tex = tex2D (_MainTex, tc);
 
+			// Iterate over all the 'active' regions and apply the shader transormation
             for (int i = 0; i < _RegionsSize; i++)
             {
                 Region curr_reg;
@@ -117,6 +118,7 @@ SubShader {
 
                 if (checkBox(tc, curr_reg))
                 {
+					// Simple highlight effect
                     float2 r = abs(tc-curr_reg.center)/curr_reg.size;
                     float col = sin(r.y + r.x*3. -_Time * 4.0 *9.) * 0.9;
                     col *= col * col * 0.6;

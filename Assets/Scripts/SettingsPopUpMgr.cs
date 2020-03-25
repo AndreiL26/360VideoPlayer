@@ -3,8 +3,8 @@ using DG.Tweening;
 
 public class SettingsPopUpMgr : MonoBehaviour
 {
-    public CanvasGroup settingsPanel;
-    public Transform img;
+    [SerializeField] private CanvasGroup settingsPanel;
+    [SerializeField] private Transform img;
     private bool isUp = false;
 
     void Start() {

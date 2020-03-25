@@ -12,41 +12,16 @@ public class HighlightMgr : MonoBehaviour
     [SerializeField] private CanvasGroup popUpCanvasGroup;
     [SerializeField] private GameObject regionPopUpInfoCanvasPrefab;
     [SerializeField] private VideoController videoController;
-    private float[] shaderRegionsData = new float[80];
-    private float[] previewRegionData = new float [4];
-    private string regionDescription;
-    private float startTime;
-    private float endTime;
-    private List<RegionData> regionsData = new List<RegionData>();
+    private float[] shaderRegionsData = new float[80];                //float array containing the details of all 'active' zones, 
+                                                                      //i.e. the zones that are currently being highlighted by the shader
+                                                                      //must be an array of floats because of how shaders can receive data!
+    private float[] previewRegionData = new float [4];                //float array containing the details of the preview zone
+    private List<RegionData> allRegionsData = new List<RegionData>(); //List of RegionData to hold the details of all regions,
+                                                                      // i.e. even regions that are not yet active but will be when the time in the 
+                                                                      //video is greater than the zones startTime
     private int existingZones = 0;
 
     bool previewRegionEnabled = false;
-
-    private class RegionData {
-        public RegionData() {
-            this.regionPopUp = null;
-            this.lastTimeClicked = -1;
-        }
-        public RegionData(float centerX, float centerY, float sizeX, float sizeY, string text, int startTime, int endTime) {
-            this.center.x = centerX;
-            this.center.y = centerY;
-            this.size.x   = sizeX;
-            this.size.y  = sizeY;
-            this.text = text;
-            this.startTime = startTime;
-            this.endTime = endTime;
-            this.regionPopUp = null;
-            this.lastTimeClicked = -1;
-        }
-
-        public Vector2 center;
-        public Vector2 size;
-        public string text;
-        public float startTime;
-        public float endTime;
-        public GameObject regionPopUp;
-        public float lastTimeClicked;
-    }
 
     public struct PolarAngles {
         public PolarAngles(float x, float y) {
@@ -67,42 +42,28 @@ public class HighlightMgr : MonoBehaviour
         highlightMaterial.SetInt("_RegionsSize", 0);
     }
 
-    public void ModifyPreviewValues(float centerX, float centerY, float sizeX, float sizeY, string regionDescription, string startTime, string endTime) {
+    public void ModifyPreviewValues(float centerX, float centerY, float sizeX, float sizeY) {
         previewRegionData[0] = centerX;
         previewRegionData[1] = centerY;
         previewRegionData[2] = sizeX;
         previewRegionData[3] = sizeY;
-        this.regionDescription = regionDescription;
-        if (float.TryParse(startTime, out float startResult)) {
-            this.startTime = startResult;
-        }
-        else {
-            this.startTime = 0;
-        }
-        if (float.TryParse(endTime, out float endResult)) {
-            this.endTime = endResult;
-        }
-        else {
-            this.endTime = 0;
-        }
     }
 
     public Vector4 SetupPreviewRegion() {
-        Vector4 ret = new Vector4();
+        Vector4 defaultZoneDetails = new Vector4();
         previewRegionEnabled = true;
-        rayDir = Camera.main.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0.0f)).direction;
-        PolarAngles clickPosition = ToRadialCoords(rayDir);
-        previewRegionData[0] = clickPosition.azimuth;
-        previewRegionData[1] = clickPosition.zenith;
-        previewRegionData[2] = 0.05f;
-        previewRegionData[3] = 0.05f;
-        ret.x = clickPosition.azimuth;
-        ret.y = clickPosition.zenith;
-        ret.z = 0.05f;
-        ret.w = 0.05f;
-        regionDescription = "Add your zone description here";
+        rayDir = Camera.main.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0.0f)).direction; // Perform a raycast in the camera orientation so that the preview zone is always centered to the user's view
+        PolarAngles clickPosition = ToRadialCoords(rayDir); 
+        previewRegionData[0] = clickPosition.azimuth;   // Assign the coordinates of the previewRegion to be the result of the raycast, i.e.
+        previewRegionData[1] = clickPosition.zenith;    // asssigning these 2 variables makes the zone be in front of the camera, so that users always see the region
+        previewRegionData[2] = 0.05f;                   // Default value for the X Size
+        previewRegionData[3] = 0.05f;                   // Default value for the Y Size
+        defaultZoneDetails.x = clickPosition.azimuth;
+        defaultZoneDetails.y = clickPosition.zenith;
+        defaultZoneDetails.z = 0.05f;
+        defaultZoneDetails.w = 0.05f;
 
-        return ret;
+        return defaultZoneDetails;
     }
 
     public void StopPreviewRegion() {
@@ -111,19 +72,13 @@ public class HighlightMgr : MonoBehaviour
 
 
     public void RemoveAllRegionsFromShader() {
-        foreach (RegionData region in regionsData) {
+        foreach (RegionData region in allRegionsData) {
             RemoveRegionFromShader(region);
         }
     }
 
-    public void AddPreviewRegionsToRegionsData() {
-        RegionData regionData = new RegionData();
-        regionData.center = new Vector2(previewRegionData[0],previewRegionData[1]);
-        regionData.size = new Vector2(previewRegionData[2],previewRegionData[3]);
-        regionData.text = regionDescription;
-        regionData.startTime = startTime;
-        regionData.endTime = endTime;
-        regionsData.Add(regionData);
+    public void AddPreviewRegionsToRegionsData(RegionData newRegion) {
+        allRegionsData.Add(newRegion);
     }
     
     private void Update() {
@@ -131,28 +86,28 @@ public class HighlightMgr : MonoBehaviour
             return;
 
         if(!previewRegionEnabled) {
-            highlightMaterial.SetFloatArray("_RegionsData", shaderRegionsData);
+            highlightMaterial.SetFloatArray("_RegionsData", shaderRegionsData);    // Every frame send the active regions data to the shader, so that the highlight is visible!
             highlightMaterial.SetInt("_RegionsSize", shaderRegionsData.Length/4);
 
             if (Input.GetMouseButtonDown(0)) {
-                rayDir = Camera.main.ScreenPointToRay(Input.mousePosition).direction;
+                // Check if the user clicked on a zone and update the pop-up accordingly
+                rayDir = Camera.main.ScreenPointToRay(Input.mousePosition).direction; 
 
                 PolarAngles clickPosition = ToRadialCoords(rayDir);
                 RegionData hitRegion = CheckRegionHit(clickPosition);
                 if (hitRegion != null) {
                     if (GetRegionIndexFromShader(hitRegion) != -1) {
-                        //AddRegionToShader(hitRegion);
                         Quaternion rot = Quaternion.LookRotation(rayDir, Vector3.up);
-                        if (hitRegion.regionPopUp == null) {
-                            hitRegion.regionPopUp = Instantiate(regionPopUpInfoCanvasPrefab, rayDir * 5.0f, rot);
-                            hitRegion.regionPopUp.GetComponentInChildren<Text>().text = hitRegion.text;
-                            hitRegion.regionPopUp.GetComponent<ZonePopUpController>().EnablePopUp();
+                        if (hitRegion.getRegionPopUp() == null) {
+                            hitRegion.setRegionPopUp(Instantiate(regionPopUpInfoCanvasPrefab, rayDir * 5.0f, rot));
+                            hitRegion.getRegionPopUp().GetComponentInChildren<Text>().text = hitRegion.getRegionDescription();
+                            hitRegion.getRegionPopUp().GetComponent<ZonePopUpController>().EnablePopUp();
                         }
                         else {
-                            if (hitRegion.regionPopUp.GetComponent<ZonePopUpController>().IsEnabled() == false) {
-                                hitRegion.regionPopUp.transform.position = rayDir * 5.0f;
-                                hitRegion.regionPopUp.transform.rotation = rot;
-                                hitRegion.regionPopUp.GetComponent<ZonePopUpController>().EnablePopUp();
+                            if (hitRegion.getRegionPopUp().GetComponent<ZonePopUpController>().IsEnabled() == false) {
+                                hitRegion.getRegionPopUp().transform.position = rayDir * 5.0f;
+                                hitRegion.getRegionPopUp().transform.rotation = rot;
+                                hitRegion.getRegionPopUp().GetComponent<ZonePopUpController>().EnablePopUp();
                             }
                         }
                     }
@@ -167,9 +122,9 @@ public class HighlightMgr : MonoBehaviour
     }
 
     private RegionData CheckRegionHit(PolarAngles position) {
-        foreach(RegionData region in regionsData) {
-            if ((Mathf.Abs(position.azimuth - region.center.x) < Mathf.Abs(region.size.x)) &&
-               (Mathf.Abs(position.zenith - region.center.y) < Mathf.Abs(region.size.y))) {
+        foreach(RegionData region in allRegionsData) {
+            if ((Mathf.Abs(position.azimuth - region.getRegionCenter().x) < Mathf.Abs(region.getRegionSize().x)) &&
+               (Mathf.Abs(position.zenith - region.getRegionCenter().y) < Mathf.Abs(region.getRegionSize().y))) {
                 return region;
             }
         }
@@ -177,9 +132,10 @@ public class HighlightMgr : MonoBehaviour
     }
 
     private int GetRegionIndexFromShader(RegionData region) {
+        // Checks if the region is 'active' and returns the index in the float array at which the data of the region begins, or - 1 if the zone is not active
         for(int i = 0; i < existingZones; ++ i) {
-            if(shaderRegionsData[i * 4] == region.center.x && shaderRegionsData[i * 4 + 1] == region.center.y && 
-               shaderRegionsData[i * 4 + 2] == region.size.x && shaderRegionsData[i * 4 + 3] == region.size.y) {
+            if(shaderRegionsData[i * 4] == region.getRegionCenter().x && shaderRegionsData[i * 4 + 1] == region.getRegionCenter().y && 
+               shaderRegionsData[i * 4 + 2] == region.getRegionSize().x && shaderRegionsData[i * 4 + 3] == region.getRegionSize().y) {
                 return i;
             }
         }
@@ -188,11 +144,12 @@ public class HighlightMgr : MonoBehaviour
 
 
     private void UpdateShaderRegions() {
-        foreach(RegionData region in regionsData) {
-            if(region.endTime <= videoController.Time) {
+        // Updates the active zones based on the timestamps of each region
+        foreach(RegionData region in allRegionsData) {
+            if(region.getRegionEndTime() <= videoController.Time) {
                 RemoveRegionFromShader(region);
             }
-            else if (region.startTime < videoController.Time && GetRegionIndexFromShader(region) == -1) {
+            else if (region.getRegionStartTime() < videoController.Time && GetRegionIndexFromShader(region) == -1) {
                 AddRegionToShader(region);
             }
         }
@@ -218,10 +175,10 @@ public class HighlightMgr : MonoBehaviour
     }
     
     private void AddRegionToShader(RegionData regionData) {
-        shaderRegionsData[existingZones * 4]     = (regionData.center.x);
-        shaderRegionsData[existingZones * 4 + 1] = (regionData.center.y);
-        shaderRegionsData[existingZones * 4 + 2] = (regionData.size.x);
-        shaderRegionsData[existingZones * 4 + 3] = (regionData.size.y);
+        shaderRegionsData[existingZones * 4]     = (regionData.getRegionCenter().x);
+        shaderRegionsData[existingZones * 4 + 1] = (regionData.getRegionCenter().y);
+        shaderRegionsData[existingZones * 4 + 2] = (regionData.getRegionSize().x);
+        shaderRegionsData[existingZones * 4 + 3] = (regionData.getRegionSize().y);
         existingZones += 1;
         highlightMaterial.SetInt("_RegionsSize", existingZones);
     }

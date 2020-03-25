@@ -30,8 +30,10 @@ public class VideoProgressBar : MonoBehaviour, IDragHandler, IPointerDownHandler
     }
 
     private void TrySkip(PointerEventData eventData) {
+        // Handles skipping the video to the percentage clicked in the progress bar
         Vector2 localPoint;
-        if(RectTransformUtility.ScreenPointToLocalPointInRectangle(progress.rectTransform, eventData.position, null, out localPoint)) { // change null to the camera used if you are using a world position
+        if(RectTransformUtility.ScreenPointToLocalPointInRectangle(progress.rectTransform, eventData.position, null, out localPoint)) { 
+            // change null to the camera used if you are using a world position
             float percent = Mathf.InverseLerp(progress.rectTransform.rect.xMin, progress.rectTransform.rect.xMax, localPoint.x);
             SkipToPercent(percent);
         }
@@ -41,5 +43,4 @@ public class VideoProgressBar : MonoBehaviour, IDragHandler, IPointerDownHandler
         var frame = videoPlayer.frameCount * percent;
         videoPlayer.frame = (long)frame;
     }
-
 }

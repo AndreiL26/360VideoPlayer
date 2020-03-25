@@ -1,31 +1,27 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
 public class AddZoneController : MonoBehaviour
 {
-    public HighlightMgr highlightMgr;
-    public CanvasGroup addZonePanel;
+    [SerializeField] private HighlightMgr highlightMgr;
+    [SerializeField] private CanvasGroup addZonePanel;
+    [SerializeField] private Slider centerXSlider;
+    [SerializeField] private Slider centerYSlider;
+    [SerializeField] private Slider sizeXSlider;
+    [SerializeField] private Slider sizeYSlider;
+    [SerializeField] private InputField descriptionInputField;
+    [SerializeField] private InputField startTimeInputField;
+    [SerializeField] private InputField endTimeInputField;
+    private bool isUp = false;
 
-    public Slider centerXSlider;
-    public Slider centerYSlider;
-    public Slider sizeXSlider;
-    public Slider sizeYSlider;
-    public InputField descriptionInputField;
-    public InputField startTimeInputField;
-    public InputField endTimeInputField;
-
-    bool isUp = false;
-
-    void Start() {
+    private void Start() {
         addZonePanel.interactable = false;
         addZonePanel.alpha = 0;
     }
 
     public void ShowAddZonePanel() {
-        addZonePanel.DOKill ();
+        addZonePanel.DOKill();
         if (!isUp) {
             addZonePanel.DOFade (1.0f, 0.25f).SetEase (Ease.InSine).OnComplete (() => { addZonePanel.interactable = true; });
             Vector4 sliderValues = highlightMgr.SetupPreviewRegion();
@@ -46,11 +42,27 @@ public class AddZoneController : MonoBehaviour
     }
 
     public void ModifiedRegionsValues() {
-        highlightMgr.ModifyPreviewValues(centerXSlider.value, centerYSlider.value, sizeXSlider.value, sizeYSlider.value, descriptionInputField.text, startTimeInputField.text, endTimeInputField.text);
+        highlightMgr.ModifyPreviewValues(centerXSlider.value, centerYSlider.value, sizeXSlider.value, sizeYSlider.value);
     }
 
     public void AddPreviewRegionToData() {
         ShowAddZonePanel();
-        highlightMgr.AddPreviewRegionsToRegionsData();
+        float startTime;
+        float endTime;
+        if (float.TryParse(startTimeInputField.text, out float startResult)) {
+            startTime = startResult;
+        }
+        else {
+            startTime = 0;
+        }
+        if (float.TryParse(endTimeInputField.text, out float endResult)) {
+            endTime = endResult;
+        }
+        else {
+            endTime = 0;
+        }
+        RegionData newRegion = new RegionData(centerXSlider.value, centerYSlider.value, sizeXSlider.value, sizeYSlider.value,
+                                        descriptionInputField.text, startTime, endTime);
+        highlightMgr.AddPreviewRegionsToRegionsData(newRegion);
     }
 }

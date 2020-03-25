@@ -6,12 +6,10 @@ using UnityEngine.EventSystems;
 
 public class DragEventHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler {
 
-    public float speed = 3.5f;
-    public Camera mainCamera;
-    [SerializeField]
-    private RectTransform bar;
-    [SerializeField]
-    private CanvasGroup canvasGroup;
+    [SerializeField] private Camera mainCamera;
+    [SerializeField] private RectTransform bar;
+    [SerializeField] private CanvasGroup canvasGroup;
+    private float speed = 3.5f;
     private float X;
     private float Y;
     private bool rotate;
@@ -28,14 +26,7 @@ public class DragEventHandler : MonoBehaviour, IDragHandler, IEndDragHandler, IP
 
     public void OnPointerExit(PointerEventData eventData) {
         canvasGroup.DOFade(1.0f, 0.25f).SetEase(Ease.InSine).OnComplete(() => { canvasGroup.interactable = true; });
-
     }
-
-    private IEnumerator WaitBeforeHidingUIBar() {
-        //Leads to Buggy Behaviour idk why, must look into it!
-        yield return new WaitForSeconds(1);
-    }
-
 
     public void OnDrag(PointerEventData eventData) {
         rotate = true;

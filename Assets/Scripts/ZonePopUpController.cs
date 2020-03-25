@@ -4,20 +4,16 @@ using UnityEngine;
 
 public class ZonePopUpController : MonoBehaviour
 {
-    public CanvasGroup zonePopUp;
-    public Transform closeButton;
+    [SerializeField] private CanvasGroup zonePopUp;
+    [SerializeField] private Transform closeButton;
     private bool isEnabled = true;
 
-    void Update()
-    {
-        if(Input.GetMouseButtonDown(0))
-        {
+    void Update() {
+        if(Input.GetMouseButtonDown(0)) {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
-                if(hit.transform.tag == "PopUpCloseButton" && closeButton == hit.transform)
-                {
+            if (Physics.Raycast(ray, out hit)) {
+                if(hit.transform.tag == "PopUpCloseButton" && closeButton == hit.transform) {
                     DisablePopUp();
                 }
             }
