@@ -629,8 +629,8 @@ to attach them to the start of each source file to most effectively
 state the exclusion of warranty; and each file should have at least
 the "copyright" line and a pointer to where the full notice is found.
 
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    <360 video player made with Unity.>
+    Copyright (C) <2020>  <Andrei Lazar, Emil Almazov, Yaoning Yang, Team 9 UCL Industry Exchange Programme>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
